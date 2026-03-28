@@ -1,0 +1,2 @@
+# Introducción
+Para la práctica de la asignatura Bases de Datos Avanzadas se ha diseñado e implementado la base de datos de una plataforma de ride-hailing. En esta, el rider solicita un viaje que es ofertado a diversos conductores. Estos pueden decidir si lo aceptan o no, y el primero que decida hacerlo
