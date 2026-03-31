@@ -24,3 +24,26 @@ A continuación, se presenta el MER resultante, realizado mediante la herramient
 ![MER](./MER.png)
 
 # Entidades principales
+En este apartado se describen las entidades sobre las que hemos basado nuestra base de datos. 
+- **RIDER**: Usuario que utiliza la aplicación para solicitar un viaje.Cuenta con un ID como clave primaria, además de los datos necesarios para el registro. Cada rider puede realizar múltiples solicitudes a lo largo del tiempo.
+- **VIAJE**: Entidad que representa el núcleo del modelo. Almacena la infromación de cada trayecto solicitado, como el precio y el conductor asignado. Además, supone también un putno de conexión con otras entidades.
+- **OFERTA**: Representa la lógica del problema. Cuando un rider solicita un viaje, se genera la oferta, que recoge el viaje, el conductor y el estado de la respuesta. Permite registrar qué conductores han recibido una solicitud y cuáles la han aceptado.
+- **CONDUCTOR**: Representa a los usuarios que reciben ofertas y realizan los viajes. Cada uno pertenece a una única empresa, y de acuerdo con los supeustos mencionados previamente, está vinculado con un único vehículo. Sobre esta entidad se calculan métricas como la tasa de aceptación o los ingresos generados.
+- **COMPANY**: Agrupa a los conductores según la empresa a la que pertenecen. Representa una naecesidad fucnional, pues el enunciado pide el cálculo de métricas asociadas a la empresa, como los ingresos o la tasa de aceptación.
+- **PAGO**: Recoge la información económica asociada a cada solicitud de viaje. Es una entidad independiente para facilitar la gestión del cobro. Por esta separación, es más fácil calcular ingresos por conductor y por empresa, además de los euros por kilómetro o los euros por minuto.
+- **VEHÍCULO**: Almacena la innformación del transporte empleado por el conductor. Su función principal es descriptiva, pero permite también acercar el modelo al funcionamiento real de este tipo de aplicaciones.
+
+# Relaciones y cardinalidades
+Las relaciones entre las entidades han sido definidas siguiendo el funcionamiento del sistema y los supuestos previamente mencionados.
+
+En primer lugar, la relación entre RIDER y VIAJE es de uno a muchos, dado que un mismo rider puede solicitar varios viajes a lo largo del tiempo, mientras que cada viaje solo puede haber sido solicitado por un único rider.
+
+Asimismo, la relación entre VIAJE y OFERTA es también de uno a muchos. Esto se debe a que una misma solicitud de viaje puede generar múltiples ofertas dirigidas a distintos conductores. Cada oferta, sin embargo, pertenece exclusivamente a un único viaje.
+
+La relación entre CONDUCTOR y OFERTA es igualmente de uno a muchos. Un mismo conductor puede recibir muchas ofertas a lo largo de su actividad, pero cada oferta concreta se remite a un solo conductor.
+
+Por otro lado, la relación entre COMPANY y CONDUCTOR es de uno a muchos, puesto que una empresa puede agrupar a varios conductores, mientras que cada conductor pertenece únicamente a una company.
+
+Como se ha mencionado antes, la relación entre CONDUCTOR y VEHÍCULO es de uno a uno. De este modo, cada conductor dispone de un único vehículo asociado y cada vehículo queda vinculado a un solo conductor.
+
+Por último, la relación entre VIAJE y PAGO se ha definido como uno a uno, ya que cada trayecto genera un único pago asociado.
