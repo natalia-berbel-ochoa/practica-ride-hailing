@@ -1,14 +1,14 @@
 -- 1. USUARIOS corresponde al enunciado: "Usuarios (rider y conductores) y sus perfiles"
 
 INSERT INTO usuarios (nombre_completo, email, telefono, rol) VALUES
-('Ana Pérez', 'ana.perez@example.com', '600000001', 'pasajero'),
-('Luis García', 'luis.garcia@example.com', '600000002', 'pasajero'),
-('Marta López', 'marta.lopez@example.com', '600000003', 'pasajero'),
-('Javier Ruiz', 'javier.ruiz@example.com', '600000004', 'pasajero'),
-('Lucía Torres', 'lucia.torres@example.com', '600000005', 'pasajero'),
-('Pablo Martín', 'pablo.martin@example.com', '600000006', 'pasajero'),
-('Elena Sánchez', 'elena.sanchez@example.com', '600000007', 'pasajero'),
-('Diego Romero', 'diego.romero@example.com', '600000008', 'pasajero'),
+('Ana Pérez', 'ana.perez@example.com', '600000001', 'rider'),
+('Luis García', 'luis.garcia@example.com', '600000002', 'rider'),
+('Marta López', 'marta.lopez@example.com', '600000003', 'rider'),
+('Javier Ruiz', 'javier.ruiz@example.com', '600000004', 'rider'),
+('Lucía Torres', 'lucia.torres@example.com', '600000005', 'rider'),
+('Pablo Martín', 'pablo.martin@example.com', '600000006', 'rider'),
+('Elena Sánchez', 'elena.sanchez@example.com', '600000007', 'rider'),
+('Diego Romero', 'diego.romero@example.com', '600000008', 'rider'),
 
 ('Carlos Díaz', 'carlos.diaz@example.com', '600000101', 'conductor'),
 ('Sergio Moreno', 'sergio.moreno@example.com', '600000102', 'conductor'),
@@ -22,9 +22,9 @@ INSERT INTO usuarios (nombre_completo, email, telefono, rol) VALUES
 ('Óscar León', 'oscar.leon@example.com', '600000110', 'conductor');
 
 
--- 2. PASAJEROS Los usuarios 1 al 8 son pasajeros
+-- 2. PASAJEROS Los usuarios 1 al 8 son riders
 
-INSERT INTO pasajeros (id_usuario, valoracion) VALUES
+INSERT INTO rider (id_usuario, valoracion) VALUES
 (1, 4.8),
 (2, 4.6),
 (3, 4.9),
@@ -37,7 +37,7 @@ INSERT INTO pasajeros (id_usuario, valoracion) VALUES
 
 -- 3. EMPRESAS 
 
-INSERT INTO empresas (nombre, cif, pais) VALUES
+INSERT INTO company (nombre, cif, pais) VALUES
 ('MoveNow', 'A10000001', 'España'),
 ('QuickRide', 'A10000002', 'España'),
 ('UrbanGo', 'A10000003', 'España');
@@ -45,7 +45,7 @@ INSERT INTO empresas (nombre, cif, pais) VALUES
 
 -- 4. CONDUCTORES los usuarios 9 al 18 son conductores
 
-INSERT INTO conductores (id_usuario, id_empresa, numero_licencia, valoracion, disponible) VALUES
+INSERT INTO conductores (id_usuario, id_company, numero_licencia, valoracion, disponible) VALUES
 (9,  1, 'LIC-0001', 4.9, TRUE),
 (10, 1, 'LIC-0002', 4.7, TRUE),
 (11, 1, 'LIC-0003', 4.8, TRUE),
@@ -93,7 +93,7 @@ INSERT INTO ubicaciones (direccion_texto, latitud, longitud, ciudad, pais) VALUE
 -- 7. VIAJES
 
 INSERT INTO viajes (
-    id_pasajero,
+    id_rider,
     id_conductor_asignado,
     id_ubicacion_origen,
     id_ubicacion_destino,

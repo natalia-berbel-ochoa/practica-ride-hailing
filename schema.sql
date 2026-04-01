@@ -1,15 +1,15 @@
 -- LIMPIEZA INICIAL DE LA BASE DE DATOS
 
-DROP TABLE IF EXISTS auditoria_operaciones CASCADE;     -- "Historial y auditoría básica de operaciones"
-DROP TABLE IF EXISTS pagos CASCADE;                     -- "Costo del viaje"
-DROP TABLE IF EXISTS ofertas_viaje CASCADE;             -- "Ofertas enviadas y decisiones de aceptación/rechazo"
-DROP TABLE IF EXISTS viajes CASCADE;                    -- "Viajes con estado"
-DROP TABLE IF EXISTS ubicaciones CASCADE;               -- "A y B son geolocalizaciones"
+DROP TABLE IF EXISTS auditoria_operaciones CASCADE;     -- Historial y auditoría básica de operaciones
+DROP TABLE IF EXISTS pagos CASCADE;                     -- Costo del viaje
+DROP TABLE IF EXISTS ofertas_viaje CASCADE;             -- Ofertas enviadas y decisiones de aceptación/rechazo
+DROP TABLE IF EXISTS viajes CASCADE;                    -- Viajes con estado
+DROP TABLE IF EXISTS ubicaciones CASCADE;               -- A y B son geolocalizaciones
 DROP TABLE IF EXISTS vehiculos CASCADE;                 
-DROP TABLE IF EXISTS conductores CASCADE;               -- "conductores asociados a una company"
-DROP TABLE IF EXISTS empresas CASCADE;                  
-DROP TABLE IF EXISTS pasajeros CASCADE;                
-DROP TABLE IF EXISTS usuarios CASCADE;                  -- "Usuarios (rider y conductores) y sus perfiles"
+DROP TABLE IF EXISTS conductores CASCADE;               -- conductores asociados a una company
+DROP TABLE IF EXISTS company CASCADE;                  
+DROP TABLE IF EXISTS rider CASCADE;                
+DROP TABLE IF EXISTS usuarios CASCADE;                  -- Usuarios (rider y conductores) y sus perfiles
 
 DROP TYPE IF EXISTS tipo_rol_usuario CASCADE;
 DROP TYPE IF EXISTS tipo_estado_viaje CASCADE;
@@ -20,7 +20,7 @@ DROP TYPE IF EXISTS tipo_estado_pago CASCADE;
 -- CREACIÓN DE TIPOS ENUM
 
 CREATE TYPE tipo_rol_usuario AS ENUM (
-    'pasajero',
+    'rider',
     'conductor',
     'admin'
 ); -- "Usuarios y sus perfiles"
@@ -61,20 +61,20 @@ CREATE TABLE usuarios (
     activo              BOOLEAN NOT NULL DEFAULT TRUE                       
 );
 
-CREATE TABLE pasajeros (
-    id_pasajero         BIGSERIAL PRIMARY KEY,                              
+CREATE TABLE rider (
+    id_rider         BIGSERIAL PRIMARY KEY,                              
     id_usuario          BIGINT NOT NULL UNIQUE,                             
     valoracion          NUMERIC(3,2) NOT NULL DEFAULT 5.00
                         CHECK (valoracion BETWEEN 0 AND 5),                 
 
-    CONSTRAINT fk_pasajeros_usuarios
+    CONSTRAINT fk_rider_usuarios
         FOREIGN KEY (id_usuario)
         REFERENCES usuarios(id_usuario)
         ON DELETE CASCADE
 );
 
-CREATE TABLE (
-    id_empresa          BIGSERIAL PRIMARY KEY,                              
+CREATE TABLE company (
+    id_company          BIGSERIAL PRIMARY KEY,                              
     nombre              VARCHAR(120) NOT NULL UNIQUE,                       
     cif                 VARCHAR(30) UNIQUE,                                 
     pais                VARCHAR(80),                                        
@@ -85,7 +85,7 @@ CREATE TABLE (
 CREATE TABLE conductores (
     id_conductor            BIGSERIAL PRIMARY KEY,                          
     id_usuario              BIGINT NOT NULL UNIQUE,                         
-    id_empresa              BIGINT NOT NULL,                                
+    id_company              BIGINT NOT NULL,                                
     numero_licencia         VARCHAR(50) NOT NULL UNIQUE,                    
     valoracion              NUMERIC(3,2) NOT NULL DEFAULT 5.00
                             CHECK (valoracion BETWEEN 0 AND 5),             
@@ -97,9 +97,9 @@ CREATE TABLE conductores (
         REFERENCES usuarios(id_usuario)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_conductores_empresas
-        FOREIGN KEY (id_empresa)
-        REFERENCES empresas(id_empresa)
+    CONSTRAINT fk_conductores_company
+        FOREIGN KEY (id_company)
+        REFERENCES company(id_company)
         ON DELETE RESTRICT
 );
 
@@ -133,7 +133,7 @@ CREATE TABLE ubicaciones (
 
 CREATE TABLE viajes (
     id_viaje                    BIGSERIAL PRIMARY KEY,                     
-    id_pasajero                 BIGINT NOT NULL,                           
+    id_rider                 BIGINT NOT NULL,                           
     id_conductor_asignado       BIGINT,                                     
     id_ubicacion_origen         BIGINT NOT NULL,                            
     id_ubicacion_destino        BIGINT NOT NULL,                            
@@ -150,9 +150,9 @@ CREATE TABLE viajes (
     precio_estimado             NUMERIC(10,2) CHECK (precio_estimado >= 0), 
     precio_final                NUMERIC(10,2) CHECK (precio_final >= 0),    
 
-    CONSTRAINT fk_viajes_pasajeros
-        FOREIGN KEY (id_pasajero)
-        REFERENCES pasajeros(id_pasajero)
+    CONSTRAINT fk_viajes_rider
+        FOREIGN KEY (id_rider)
+        REFERENCES rider(id_rider)
         ON DELETE RESTRICT,
 
     CONSTRAINT fk_viajes_conductores
@@ -229,14 +229,14 @@ CREATE TABLE auditoria_operaciones (
 CREATE INDEX idx_usuarios_rol
     ON usuarios(rol);                                                      
 
-CREATE INDEX idx_conductores_empresa
-    ON conductores(id_empresa);                                             
+CREATE INDEX idx_conductores_company
+    ON conductores(id_company);                                             
 
 CREATE INDEX idx_conductores_disponible
     ON conductores(disponible);                                             
 
-CREATE INDEX idx_viajes_pasajero
-    ON viajes(id_pasajero);                                                 
+CREATE INDEX idx_viajes_rider
+    ON viajes(id_rider);                                                 
 
 CREATE INDEX idx_viajes_conductor_asignado
     ON viajes(id_conductor_asignado);                                      
