@@ -1,4 +1,9 @@
 -- LIMPIEZA INICIAL DE LA BASE DE DATOS
+DROP INDEX IF EXISTS uq_oferta_viaje_conductor CASCADE;
+DROP INDEX IF EXISTS uq_una_oferta_aceptada_por_viaje CASCADE;
+DROP TABLE IF EXISTS auditoria_operaciones CASCADE;
+DROP TABLE IF EXISTS historial_estado_oferta CASCADE;
+DROP TABLE IF EXISTS historial_estado_viaje CASCADE;
 DROP TABLE IF EXISTS pago CASCADE;                     -- Costo del viaje
 DROP TABLE IF EXISTS oferta CASCADE;             -- oferta enviadas y decisiones de aceptación/rechazo
 DROP TABLE IF EXISTS viaje CASCADE;                    -- viaje con estado
@@ -143,7 +148,7 @@ CREATE TABLE oferta (
         REFERENCES conductor(id_conductor)
         ON DELETE CASCADE,
 
-    CONSTRAINT uq_oferta_viaje_conductor
+    CONSTRAINT uq_oferta_viaje_conductor_pair
         UNIQUE (id_viaje, id_conductor),
 
     CONSTRAINT chk_respuesta_oferta
@@ -169,6 +174,192 @@ CREATE TABLE pago (
         REFERENCES oferta(id_oferta)
         ON DELETE RESTRICT
 );
+
+CREATE TABLE historial_estado_viaje (
+    id_historial         BIGSERIAL PRIMARY KEY,
+    id_viaje             BIGINT NOT NULL,
+    estado_anterior      estado_viaje_enum,
+    estado_nuevo         estado_viaje_enum NOT NULL,
+    fecha_cambio         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario_bd           VARCHAR(100) NOT NULL DEFAULT CURRENT_USER,
+
+    CONSTRAINT fk_hist_viaje
+        FOREIGN KEY (id_viaje)
+        REFERENCES viaje(id_viaje)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE historial_estado_oferta (
+    id_historial         BIGSERIAL PRIMARY KEY,
+    id_oferta            BIGINT NOT NULL,
+    estado_anterior      estado_oferta_enum,
+    estado_nuevo         estado_oferta_enum NOT NULL,
+    fecha_cambio         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario_bd           VARCHAR(100) NOT NULL DEFAULT CURRENT_USER,
+
+    CONSTRAINT fk_hist_oferta
+        FOREIGN KEY (id_oferta)
+        REFERENCES oferta(id_oferta)
+        ON DELETE CASCADE
+);
+
+CREATE TABLE auditoria_operaciones (
+    id_auditoria         BIGSERIAL PRIMARY KEY,
+    tabla_afectada       VARCHAR(50) NOT NULL,
+    operacion            VARCHAR(10) NOT NULL,
+    id_registro          BIGINT,
+    fecha_operacion      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    usuario_bd           VARCHAR(100) NOT NULL DEFAULT CURRENT_USER,
+    datos_antes          JSONB,
+    datos_despues        JSONB
+);
+
+
+-- FUNCIONES DE HISTORIAL
+
+CREATE OR REPLACE FUNCTION fn_historial_viaje()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO historial_estado_viaje (id_viaje, estado_anterior, estado_nuevo)
+        VALUES (NEW.id_viaje, NULL, NEW.estado_viaje);
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        IF OLD.estado_viaje IS DISTINCT FROM NEW.estado_viaje THEN
+            INSERT INTO historial_estado_viaje (id_viaje, estado_anterior, estado_nuevo)
+            VALUES (NEW.id_viaje, OLD.estado_viaje, NEW.estado_viaje);
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_historial_oferta()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO historial_estado_oferta (id_oferta, estado_anterior, estado_nuevo)
+        VALUES (NEW.id_oferta, NULL, NEW.estado_oferta);
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        IF OLD.estado_oferta IS DISTINCT FROM NEW.estado_oferta THEN
+            INSERT INTO historial_estado_oferta (id_oferta, estado_anterior, estado_nuevo)
+            VALUES (NEW.id_oferta, OLD.estado_oferta, NEW.estado_oferta);
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
+-- FUNCIONES DE AUDITORÍA
+
+CREATE OR REPLACE FUNCTION fn_auditoria_viaje()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'viaje', 'INSERT', NEW.id_viaje, NULL, to_jsonb(NEW)
+        );
+        RETURN NEW;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'viaje', 'UPDATE', NEW.id_viaje, to_jsonb(OLD), to_jsonb(NEW)
+        );
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'viaje', 'DELETE', OLD.id_viaje, to_jsonb(OLD), NULL
+        );
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_auditoria_oferta()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'oferta', 'INSERT', NEW.id_oferta, NULL, to_jsonb(NEW)
+        );
+        RETURN NEW;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'oferta', 'UPDATE', NEW.id_oferta, to_jsonb(OLD), to_jsonb(NEW)
+        );
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'oferta', 'DELETE', OLD.id_oferta, to_jsonb(OLD), NULL
+        );
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION fn_auditoria_pago()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'pago', 'INSERT', NEW.id_pago, NULL, to_jsonb(NEW)
+        );
+        RETURN NEW;
+
+    ELSIF TG_OP = 'UPDATE' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'pago', 'UPDATE', NEW.id_pago, to_jsonb(OLD), to_jsonb(NEW)
+        );
+        RETURN NEW;
+
+    ELSIF TG_OP = 'DELETE' THEN
+        INSERT INTO auditoria_operaciones (
+            tabla_afectada, operacion, id_registro, datos_antes, datos_despues
+        )
+        VALUES (
+            'pago', 'DELETE', OLD.id_pago, to_jsonb(OLD), NULL
+        );
+        RETURN OLD;
+    END IF;
+
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
 
 -- ÍNDICES Y VISTAS
 CREATE INDEX idx_conductor_company
@@ -199,3 +390,34 @@ CREATE INDEX idx_pago_viaje
 CREATE UNIQUE INDEX uq_una_oferta_aceptada_por_viaje
     ON oferta(id_viaje)
     WHERE estado_oferta = 'aceptada';
+
+
+-- TRIGGERS DE HISTORIAL
+
+CREATE TRIGGER trg_historial_viaje
+AFTER INSERT OR UPDATE ON viaje
+FOR EACH ROW
+EXECUTE FUNCTION fn_historial_viaje();
+
+CREATE TRIGGER trg_historial_oferta
+AFTER INSERT OR UPDATE ON oferta
+FOR EACH ROW
+EXECUTE FUNCTION fn_historial_oferta();
+
+
+-- TRIGGERS DE AUDITORÍA
+
+CREATE TRIGGER trg_auditoria_viaje
+AFTER INSERT OR UPDATE OR DELETE ON viaje
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_viaje();
+
+CREATE TRIGGER trg_auditoria_oferta
+AFTER INSERT OR UPDATE OR DELETE ON oferta
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_oferta();
+
+CREATE TRIGGER trg_auditoria_pago
+AFTER INSERT OR UPDATE OR DELETE ON pago
+FOR EACH ROW
+EXECUTE FUNCTION fn_auditoria_pago();

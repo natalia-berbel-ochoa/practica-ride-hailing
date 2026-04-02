@@ -170,25 +170,19 @@ INSERT INTO oferta (
 
 
 -- 7. PAGOS (solo para viajes finalizados)
-CREATE TYPE estado_pago_enum AS ENUM (
-    'pendiente',
-    'completado',
-    'fallido',
-    'reembolsado'
-); -- Estado del pago
 
 INSERT INTO pago (id_viaje, id_oferta, importe_pago, comision_company, estado_pago, metodo_pago) VALUES
 (1, 1, 13.20, 1.32, 'completado', 'tarjeta'),
 (2, 4, 16.90, 1.69, 'completado', 'efectivo'),
-(3, 7, 25.10, 2.51, 'completado', 'transferencia'),
+(3, 7, 25.10, 2.51, 'completado', 'tarjeta'),
 (8, 20, 11.40, 1.14, 'completado', 'tarjeta'),
-(9, 25, 15.00, 1.50, 'pendiente', NULL), -- El pago aún no se ha completado porque el viaje acaba de ser aceptado por el conductor 5
-(10, NULL, NULL, NULL, 'pendiente', NULL), -- No se ha generado porque el viaje aún no ha sido aceptado por ningún conductor
+(9, 25, 15.00, 1.50, 'pendiente', 'efectivo'); -- El pago aún no se ha completado porque el viaje acaba de ser aceptado por el conductor 5
+-- (10, NULL, NULL, NULL, 'pendiente', NULL), -- No se ha generado porque el viaje aún no ha sido aceptado por ningún conductor
 -- Pago fallido en el viaje 5, que aunque ha sido aceptado por el conductor 7, el pago no se ha completado
-(5, 11, 20.00, 2.00, 'fallido', NULL),
+-- (5, 11, 20.00, 2.00, 'fallido', NULL),
 -- Pago reembolsado en el viaje 4, que aunque ha sido aceptado por el conductor 6, el viaje ha sido cancelado posteriormente
-(4, 10, 18.50, 1.85, 'reembolsado', NULL);
-()
+-- (4, 10, 18.50, 1.85, 'reembolsado', NULL);
 
-
+-- COMENTO ESO POR QUE DA ERROR. Ya que el campo de "forma de pago" no puede ser null y ahí lo estabas poniendo y no me compilaba el data.sql
+-- También he borrado lo de encima de metodos de pago porque se repetia con lo que ya había puesto en el schema.sql y me daba error.
 
