@@ -1,267 +1,201 @@
 -- LIMPIEZA INICIAL DE LA BASE DE DATOS
-
-DROP TABLE IF EXISTS auditoria_operaciones CASCADE;     -- Historial y auditoría básica de operaciones
-DROP TABLE IF EXISTS pagos CASCADE;                     -- Costo del viaje
-DROP TABLE IF EXISTS ofertas_viaje CASCADE;             -- Ofertas enviadas y decisiones de aceptación/rechazo
-DROP TABLE IF EXISTS viajes CASCADE;                    -- Viajes con estado
-DROP TABLE IF EXISTS ubicaciones CASCADE;               -- A y B son geolocalizaciones
-DROP TABLE IF EXISTS vehiculos CASCADE;                 
-DROP TABLE IF EXISTS conductores CASCADE;               -- conductores asociados a una company
+DROP TABLE IF EXISTS pago CASCADE;                     -- Costo del viaje
+DROP TABLE IF EXISTS oferta CASCADE;             -- oferta enviadas y decisiones de aceptación/rechazo
+DROP TABLE IF EXISTS viaje CASCADE;                    -- viaje con estado
+DROP TABLE IF EXISTS vehiculo CASCADE;                 
+DROP TABLE IF EXISTS conductor CASCADE;               -- conductor asociados a una company
 DROP TABLE IF EXISTS company CASCADE;                  
 DROP TABLE IF EXISTS rider CASCADE;                
-DROP TABLE IF EXISTS usuarios CASCADE;                  -- Usuarios (rider y conductores) y sus perfiles
 
-DROP TYPE IF EXISTS tipo_rol_usuario CASCADE;
-DROP TYPE IF EXISTS tipo_estado_viaje CASCADE;
-DROP TYPE IF EXISTS tipo_estado_oferta CASCADE;
-DROP TYPE IF EXISTS tipo_estado_pago CASCADE;
-
+DROP TYPE IF EXISTS estado_viaje_enum CASCADE;
+DROP TYPE IF EXISTS estado_oferta_enum CASCADE;
+DROP TYPE IF EXISTS estado_pago_enum CASCADE;
+DROP TYPE IF EXISTS metodo_pago_enum CASCADE;
 
 -- CREACIÓN DE TIPOS ENUM
-
-CREATE TYPE tipo_rol_usuario AS ENUM (
-    'rider',
-    'conductor',
-    'admin'
-); -- "Usuarios y sus perfiles"
-
-CREATE TYPE tipo_estado_viaje AS ENUM (
+CREATE TYPE estado_viaje_enum AS ENUM (
     'solicitado',
+    'cancelado',
     'aceptado',
-    'en_curso',
-    'finalizado',
-    'cancelado'
-); -- "Viajes con estado"
+    'en curso',
+    'finalizado'
+); -- Estado del viaje
 
-CREATE TYPE tipo_estado_oferta AS ENUM (
-    'pendiente',
+CREATE TYPE estado_oferta_enum AS ENUM (
+    'enviada',
     'aceptada',
-    'rechazada',
-    'expirada'
-); -- "Ofertas enviadas y decisiones de aceptación/rechazo"
+    'rechazada'
+); -- oferta enviada y decisiones de aceptación/rechazo
 
-CREATE TYPE tipo_estado_pago AS ENUM (
+CREATE TYPE estado_pago_enum AS ENUM (
     'pendiente',
-    'pagado',
+    'completado',
     'fallido',
     'reembolsado'
-); -- "Dinero del viaje"
+); -- Estado del pago
+
+CREATE TYPE metodo_pago_enum AS ENUM (
+    'tarjeta',
+    'efectivo'
+); 
 
 
 -- CREACIÓN DE TABLAS
-
-CREATE TABLE usuarios (
-    id_usuario          BIGSERIAL PRIMARY KEY,                              
-    nombre_completo     VARCHAR(120) NOT NULL,                              
-    email               VARCHAR(150) NOT NULL UNIQUE,                       
-    telefono            VARCHAR(30) UNIQUE,                                 
-    rol                 tipo_rol_usuario NOT NULL,                          
-    fecha_creacion      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,       
-    fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,       
-    activo              BOOLEAN NOT NULL DEFAULT TRUE                       
-);
-
 CREATE TABLE rider (
-    id_rider         BIGSERIAL PRIMARY KEY,                              
-    id_usuario          BIGINT NOT NULL UNIQUE,                             
-    valoracion          NUMERIC(3,2) NOT NULL DEFAULT 5.00
-                        CHECK (valoracion BETWEEN 0 AND 5),                 
-
-    CONSTRAINT fk_rider_usuarios
-        FOREIGN KEY (id_usuario)
-        REFERENCES usuarios(id_usuario)
-        ON DELETE CASCADE
+    id_rider        BIGSERIAL PRIMARY KEY,                              
+    nom_rider       VARCHAR(100) NOT NULL,
+    ap_rider        VARCHAR(100) NOT NULL,
+    tel_rider       VARCHAR(30) UNIQUE,         -- No hay dos personas con el mismo número
+    mail_rider      VARCHAR(100) NOT NULL UNIQUE,       -- Igual con el correo
+    pass_rider      VARCHAR(100) NOT NULL,
+    registro_rider  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP        -- Se guarda la hora de registro
 );
 
 CREATE TABLE company (
     id_company          BIGSERIAL PRIMARY KEY,                              
-    nombre              VARCHAR(120) NOT NULL UNIQUE,                       
-    cif                 VARCHAR(30) UNIQUE,                                 
-    pais                VARCHAR(80),                                        
-    fecha_creacion      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,       
-    activa              BOOLEAN NOT NULL DEFAULT TRUE                       
+    nom_company         VARCHAR(120) NOT NULL UNIQUE,                       
+    cif_company         VARCHAR(30) UNIQUE                                                     
 );
 
-CREATE TABLE conductores (
-    id_conductor            BIGSERIAL PRIMARY KEY,                          
-    id_usuario              BIGINT NOT NULL UNIQUE,                         
-    id_company              BIGINT NOT NULL,                                
-    numero_licencia         VARCHAR(50) NOT NULL UNIQUE,                    
-    valoracion              NUMERIC(3,2) NOT NULL DEFAULT 5.00
-                            CHECK (valoracion BETWEEN 0 AND 5),             
-    disponible              BOOLEAN NOT NULL DEFAULT TRUE,                  
-    fecha_creacion          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,   
-
-    CONSTRAINT fk_conductores_usuarios
-        FOREIGN KEY (id_usuario)
-        REFERENCES usuarios(id_usuario)
-        ON DELETE CASCADE,
-
-    CONSTRAINT fk_conductores_company
-        FOREIGN KEY (id_company)
-        REFERENCES company(id_company)
-        ON DELETE RESTRICT
-);
-
-CREATE TABLE vehiculos (
-    id_vehiculo             BIGSERIAL PRIMARY KEY,                          
-    id_conductor            BIGINT NOT NULL UNIQUE,                         
+CREATE TABLE vehiculo (
+    id_vehiculo             BIGSERIAL PRIMARY KEY,                                                 
     matricula               VARCHAR(20) NOT NULL UNIQUE,                    
     marca                   VARCHAR(60) NOT NULL,                           
     modelo                  VARCHAR(60) NOT NULL,                           
     color                   VARCHAR(40),                                    
-    anio                    INT CHECK (anio BETWEEN 2000 AND 2100),         
-    plazas                  INT NOT NULL DEFAULT 4 CHECK (plazas BETWEEN 1 AND 8), 
-    activo                  BOOLEAN NOT NULL DEFAULT TRUE,                  
-
-    CONSTRAINT fk_vehiculos_conductores
-        FOREIGN KEY (id_conductor)
-        REFERENCES conductores(id_conductor)
-        ON DELETE CASCADE
+    anio                    INT CHECK (anio BETWEEN 2000 AND 2100)                       
 );
 
-CREATE TABLE ubicaciones (
-    id_ubicacion            BIGSERIAL PRIMARY KEY,                          
-    direccion_texto         VARCHAR(255),                                   
-    latitud                 NUMERIC(9,6) NOT NULL
-                            CHECK (latitud BETWEEN -90 AND 90),             
-    longitud                NUMERIC(9,6) NOT NULL
-                            CHECK (longitud BETWEEN -180 AND 180),          
-    ciudad                  VARCHAR(100),                                  
-    pais                    VARCHAR(100)                                    
+CREATE TABLE conductor (
+    id_conductor            BIGSERIAL PRIMARY KEY,                                               
+    id_company              BIGINT NOT NULL,                                
+    id_vehiculo             BIGINT,
+    nom_conductor           VARCHAR(100) NOT NULL,
+    ap_conductor            VARCHAR(100) NOT NULL,
+    tel_conductor           VARCHAR(30) UNIQUE,
+    mail_conductor          VARCHAR(100) NOT NULL UNIQUE,
+    pass_conductor          VARCHAR(100) NOT NULL,
+    registro_conductor      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,   
+
+    -- AÑADIMOS LAS CLAVES FORÁNEAS
+    CONSTRAINT fk_conductor_company
+        FOREIGN KEY (id_company)
+        REFERENCES company(id_company)
+        ON DELETE RESTRICT,
+    
+    CONSTRAINT fk_conductor_vehiculo
+        FOREIGN KEY (id_vehiculo)
+        REFERENCES vehiculo(id_vehiculo)
+        ON DELETE SET NULL
 );
 
-CREATE TABLE viajes (
+CREATE TABLE viaje (
     id_viaje                    BIGSERIAL PRIMARY KEY,                     
     id_rider                 BIGINT NOT NULL,                           
-    id_conductor_asignado       BIGINT,                                     
-    id_ubicacion_origen         BIGINT NOT NULL,                            
-    id_ubicacion_destino        BIGINT NOT NULL,                            
-    fecha_solicitud             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
-    fecha_aceptacion            TIMESTAMP,                                  
-    fecha_inicio                TIMESTAMP,                                 
-    fecha_fin                   TIMESTAMP,                                 
-    fecha_cancelacion           TIMESTAMP,                                  
-    estado                      tipo_estado_viaje NOT NULL DEFAULT 'solicitado', 
-    km_estimados                NUMERIC(8,2) CHECK (km_estimados >= 0),     
-    km_reales                   NUMERIC(8,2) CHECK (km_reales >= 0),        
-    minutos_estimados           INT CHECK (minutos_estimados >= 0),         
-    minutos_reales              INT CHECK (minutos_reales >= 0),            
-    precio_estimado             NUMERIC(10,2) CHECK (precio_estimado >= 0), 
-    precio_final                NUMERIC(10,2) CHECK (precio_final >= 0),    
+    id_conductor       BIGINT, -- Empiezsa null porque se asigna una vez se acepta la oferta   
+    origen_lat           NUMERIC(9,6) NOT NULL CHECK (origen_lat BETWEEN -90 AND 90),
+    origen_lon           NUMERIC(9,6) NOT NULL CHECK (origen_lon BETWEEN -180 AND 180),
+    origen_direccion     VARCHAR(255) NOT NULL,
+    destino_lat          NUMERIC(9,6) NOT NULL CHECK (destino_lat BETWEEN -90 AND 90),
+    destino_lon          NUMERIC(9,6) NOT NULL CHECK (destino_lon BETWEEN -180 AND 180),
+    destino_direccion    VARCHAR(255) NOT NULL,
+    estado_viaje         estado_viaje_enum NOT NULL DEFAULT 'solicitado',       -- Ponemos como estado determinado al generarlo "solicitado"
+    distancia_km         NUMERIC(8,2) CHECK (distancia_km >= 0),
+    duracion_min         INT CHECK (duracion_min >= 0),
+    solicitud_viaje      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    inicio_viaje         TIMESTAMP,
+    fin_viaje            TIMESTAMP,
 
-    CONSTRAINT fk_viajes_rider
+    CONSTRAINT fk_viaje_rider
         FOREIGN KEY (id_rider)
         REFERENCES rider(id_rider)
         ON DELETE RESTRICT,
 
-    CONSTRAINT fk_viajes_conductores
-        FOREIGN KEY (id_conductor_asignado)
-        REFERENCES conductores(id_conductor)
+    CONSTRAINT fk_viaje_conductor
+        FOREIGN KEY (id_conductor)
+        REFERENCES conductor(id_conductor)
         ON DELETE SET NULL,
 
-    CONSTRAINT fk_viajes_ubicacion_origen
-        FOREIGN KEY (id_ubicacion_origen)
-        REFERENCES ubicaciones(id_ubicacion)
-        ON DELETE RESTRICT,
-
-    CONSTRAINT fk_viajes_ubicacion_destino
-        FOREIGN KEY (id_ubicacion_destino)
-        REFERENCES ubicaciones(id_ubicacion)
-        ON DELETE RESTRICT,
-
-    CONSTRAINT chk_viajes_origen_distinto_destino
-        CHECK (id_ubicacion_origen <> id_ubicacion_destino)                
+    CONSTRAINT chk_origen_destino_distintos
+        CHECK ( -- Comprobamos que origen y destino no sean iguales
+            origen_lat <> destino_lat
+            OR origen_lon <> destino_lon
+            OR origen_direccion <> destino_direccion
+        )                                              
 );
 
-CREATE TABLE ofertas_viaje (
-    id_oferta                BIGSERIAL PRIMARY KEY,                        
-    id_viaje                 BIGINT NOT NULL,                               
-    id_conductor             BIGINT NOT NULL,                               
-    fecha_envio              TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, 
-    fecha_respuesta          TIMESTAMP,                                     
-    estado                   tipo_estado_oferta NOT NULL DEFAULT 'pendiente', 
+CREATE TABLE oferta (
+    id_oferta            BIGSERIAL PRIMARY KEY,
+    id_viaje             BIGINT NOT NULL,
+    id_conductor         BIGINT NOT NULL,
+    precio_oferta        NUMERIC(10,2) NOT NULL CHECK (precio_oferta >= 0), -- Comprobamos que el precio sea válido
+    estado_oferta        estado_oferta_enum NOT NULL DEFAULT 'enviada',
+    envio_oferta         TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    respuesta_oferta     TIMESTAMP,
 
-    CONSTRAINT fk_ofertas_viaje_viajes
+    CONSTRAINT fk_oferta_viaje
         FOREIGN KEY (id_viaje)
-        REFERENCES viajes(id_viaje)
+        REFERENCES viaje(id_viaje)
         ON DELETE CASCADE,
 
-    CONSTRAINT fk_ofertas_viaje_conductores
+    CONSTRAINT fk_oferta_conductor
         FOREIGN KEY (id_conductor)
-        REFERENCES conductores(id_conductor)
+        REFERENCES conductor(id_conductor)
         ON DELETE CASCADE,
 
     CONSTRAINT uq_oferta_viaje_conductor
-        UNIQUE (id_viaje, id_conductor)                                    
+        UNIQUE (id_viaje, id_conductor),
+
+    CONSTRAINT chk_respuesta_oferta
+        CHECK (respuesta_oferta IS NULL OR respuesta_oferta >= envio_oferta)                                   
 );
 
-CREATE TABLE pagos (
-    id_pago                  BIGSERIAL PRIMARY KEY,                       
-    id_viaje                 BIGINT NOT NULL UNIQUE,                       
-    importe                  NUMERIC(10,2) NOT NULL CHECK (importe >= 0),   
-    moneda                   VARCHAR(3) NOT NULL DEFAULT 'EUR',             
-    estado_pago              tipo_estado_pago NOT NULL DEFAULT 'pendiente', 
-    fecha_pago               TIMESTAMP,                                    
-    fecha_creacion           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  
+CREATE TABLE pago (
+    id_pago              BIGSERIAL PRIMARY KEY,
+    id_viaje             BIGINT NOT NULL UNIQUE,
+    id_oferta            BIGINT NOT NULL UNIQUE,
+    importe_pago         NUMERIC(10,2) NOT NULL CHECK (importe_pago >= 0),
+    comision_company     NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (comision_company >= 0),
+    estado_pago          estado_pago_enum NOT NULL DEFAULT 'pendiente',
+    metodo_pago          metodo_pago_enum NOT NULL,
 
-    CONSTRAINT fk_pagos_viajes
+    CONSTRAINT fk_pago_viaje
         FOREIGN KEY (id_viaje)
-        REFERENCES viajes(id_viaje)
-        ON DELETE CASCADE
-);
+        REFERENCES viaje(id_viaje)
+        ON DELETE CASCADE,
 
-CREATE TABLE auditoria_operaciones (
-    id_auditoria             BIGSERIAL PRIMARY KEY,                         
-    nombre_tabla             VARCHAR(100) NOT NULL,                        
-    operacion                VARCHAR(10) NOT NULL,                         
-    id_registro              BIGINT,                                       
-    datos_anteriores         JSONB,                                        
-    datos_nuevos             JSONB,                                        
-    fecha_cambio             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,  
-    cambiado_por             VARCHAR(100) NOT NULL DEFAULT CURRENT_USER     
+    CONSTRAINT fk_pago_oferta
+        FOREIGN KEY (id_oferta)
+        REFERENCES oferta(id_oferta)
+        ON DELETE RESTRICT
 );
-
 
 -- ÍNDICES Y VISTAS
+CREATE INDEX idx_conductor_company
+    ON conductor(id_company);
 
+CREATE INDEX idx_viaje_rider
+    ON viaje(id_rider);
 
-CREATE INDEX idx_usuarios_rol
-    ON usuarios(rol);                                                      
+CREATE INDEX idx_viaje_conductor
+    ON viaje(id_conductor);
 
-CREATE INDEX idx_conductores_company
-    ON conductores(id_company);                                             
+CREATE INDEX idx_viaje_estado
+    ON viaje(estado_viaje);
 
-CREATE INDEX idx_conductores_disponible
-    ON conductores(disponible);                                             
+CREATE INDEX idx_oferta_viaje
+    ON oferta(id_viaje);
 
-CREATE INDEX idx_viajes_rider
-    ON viajes(id_rider);                                                 
+CREATE INDEX idx_oferta_conductor
+    ON oferta(id_conductor);
 
-CREATE INDEX idx_viajes_conductor_asignado
-    ON viajes(id_conductor_asignado);                                      
+CREATE INDEX idx_oferta_estado
+    ON oferta(estado_oferta);
 
-CREATE INDEX idx_viajes_estado
-    ON viajes(estado);                                                      
+CREATE INDEX idx_pago_viaje
+    ON pago(id_viaje);        
 
-CREATE INDEX idx_viajes_fecha_solicitud
-    ON viajes(fecha_solicitud);                                             
-
-CREATE INDEX idx_ofertas_viaje_viaje
-    ON ofertas_viaje(id_viaje);                                            
-
-CREATE INDEX idx_ofertas_viaje_conductor
-    ON ofertas_viaje(id_conductor);                                         
-
-CREATE INDEX idx_ofertas_viaje_estado
-    ON ofertas_viaje(estado);                                               
-
-CREATE INDEX idx_pagos_viaje
-    ON pagos(id_viaje);             
-
-
--- RESTRICCIÓN CLAVE DEL NEGOCIO (Solo una oferta aceptada por viaje)
-
+-- Aceptamos una sola oferta por viaje
 CREATE UNIQUE INDEX uq_una_oferta_aceptada_por_viaje
-    ON ofertas_viaje(id_viaje)
-    WHERE estado = 'aceptada';
+    ON oferta(id_viaje)
+    WHERE estado_oferta = 'aceptada';
