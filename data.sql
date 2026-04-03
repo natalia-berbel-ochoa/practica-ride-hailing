@@ -26,9 +26,9 @@ INSERT INTO rider (nom_rider, ap_rider, mail_rider, tel_rider, pass_rider) VALUE
 -- 2. EMPRESAS 
 
 INSERT INTO company (nom_company, cif_company) VALUES
-('MoveNow', 'A10000001'),  -- id_company = 1
-('QuickRide', 'A10000002'),  -- id_company = 2
-('UrbanGo', 'A10000003');  -- id_company = 3
+('Uber', 'A10000001'),  -- id_company = 1
+('Bolt', 'A10000002'),  -- id_company = 2
+('Lyft', 'A10000003');  -- id_company = 3
 
 -- 3. VEHICULOS
 

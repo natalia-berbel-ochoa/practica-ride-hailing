@@ -47,3 +47,21 @@ Por otro lado, la relación entre COMPANY y CONDUCTOR es de uno a muchos, puesto
 Como se ha mencionado antes, la relación entre CONDUCTOR y VEHÍCULO es de uno a uno. De este modo, cada conductor dispone de un único vehículo asociado y cada vehículo queda vinculado a un solo conductor.
 
 Por último, la relación entre VIAJE y PAGO se ha definido como uno a uno, ya que cada trayecto genera un único pago asociado.
+
+# Consultas operativas (archivo queries.sql)
+Se han realizado 4 tipos de consultas para tratar de cubrir el ciclo de vida de u viaje.
+1. Inserts con transacciones atómicas
+    Se ha introducido el registro de un conductor y su vehículo dentro de una sola transacción. Esto garantiza que no haya conductor sin vehículo ni vehículo sin conductor. Del mismo modo, la solicitud del viaje y el envío de la oferta se ha agrupado en una transacción, de maner aque ningún viaje en estado solicitado carezca de oferta.
+
+2. Aceptación de oferta con bloqueo
+    Se bloquea la oferta con 'SELECT...FOR UPDATE', impidiendo que otra sesión la modifique. Tras ello, se marca la oferta como aceptada y se asigna el conductor. Automáticamente se rechazan el resto de ofertas, garantizando el requisito de no haber dos conductores que acepten la misma oferta.
+
+3. Finalización del viaje y registro del pago
+    La transición a finalizado y el pago se realizan en una única transacción. Por tanto, si el registro del pago fallase, el viaje no quedaría como finalizado.
+
+4. Consultas 
+    Se incluyen las consultas más habituales en este tipo de aplicaciones:
+        - Historial de estados de un viaje
+        - Viajes activos
+        - Ofertas por viaje
+        - Pagos completados (con información sobre el conductor)
