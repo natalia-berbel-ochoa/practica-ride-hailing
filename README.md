@@ -15,10 +15,19 @@ El repositorio contiene los siguientes archivos principales:
 - **README.md**: instrucciones de uso del proyecto.
 
 ## Instrucciones de arranque
-Vale chicas para lanzarlo hay que hacer esto en este orden:
+*Requisitos Previos:*
+- Docker y Docker Compose instalados
+- Puerto 5432 libre en la máquina local
 
-1.- docker compose up -d
+*Arranque Rápido:*
+1. **Levantar los contenedores:** docker compose up -d
+2. **Verificar que el contenedor está corriendo:** docker ps
+3. **Cargar el esquema:** docker exec -i ride_hailing psql -U postgres -d ride_hailing_db < schema.sql
+4. **Cargar los datos de prueba:** docker exec -i ride_hailing psql -U postgres -d ride_hailing_db < data.sql
+5. **Cargar los permisos:** docker exec -i ride_hailing psql -U postgres -d ride_hailing_db < permissions.sql
 
-2.- docker exec -it ride_hailing psql -U postgres -d ride_hailing_db
-
-3.- "Y luego ya las consultas que queraís"
+*Acceso a la Base de Datos:*
+- **Conexión directa:** docker exec -it ride_hailing psql -U postgres -d ride_hailing_db
+- **Ejecutar un archivo de consultas:**
+    docker exec -i ride_hailing psql -U postgres -d ride_hailing_db < queries.sql
+    docker exec -i ride_hailing psql -U postgres -d ride_hailing_db < dashboard.sql
