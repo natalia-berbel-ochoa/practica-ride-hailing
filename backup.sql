@@ -1,0 +1,188 @@
+-- =========================================================
+-- backup.sql
+-- Proyecto: Ride-Hailing Platform
+-- Base de datos: PostgreSQL 16
+-- =========================================================
+--
+-- DESCRIPCIÓN
+-- -----------
+-- Este archivo define el plan de backup y recuperación del sistema.
+--
+-- Incluye:
+--   - Estrategia de backup
+--   - Backup completo
+--   - Backup parcial
+--   - Backup de roles
+--   - Restauración
+--   - Verificación
+--
+-- IMPORTANTE
+-- ----------
+-- Los comandos se ejecutan en terminal:
+--   - Linux / macOS
+--   - Windows Command Prompt (cmd)
+--
+-- =========================================================
+-- 1. ESTRATEGIA DE BACKUP
+-- =========================================================
+--
+-- Se utiliza backup lógico con pg_dump.
+--
+-- TIPOS:
+--   - Backup completo diario
+--   - Backup de roles
+--   - Backup parcial
+--
+-- OBJETIVOS:
+--   - RPO: 24h
+--   - RTO: 30 min
+--
+-- =========================================================
+-- 2. CREAR CARPETA DE BACKUPS
+-- =========================================================
+--
+-- Linux / macOS:
+--   mkdir -p backups
+--
+-- Windows (cmd):
+--   mkdir backups
+--
+-- =========================================================
+-- 3. BACKUP COMPLETO
+-- =========================================================
+--
+-- Linux / macOS:
+--   docker exec -t ride_hailing pg_dump -U postgres -d ride_hailing_db -Fc -f /tmp/ride_hailing_full.dump
+--   docker cp ride_hailing:/tmp/ride_hailing_full.dump ./backups/ride_hailing_full.dump
+--
+-- Windows (cmd):
+--   docker exec -t ride_hailing pg_dump -U postgres -d ride_hailing_db -Fc -f /tmp/ride_hailing_full.dump
+--   docker cp ride_hailing:/tmp/ride_hailing_full.dump .\backups\ride_hailing_full.dump
+--
+-- =========================================================
+-- 4. BACKUP SQL PLANO (OPCIONAL)
+-- =========================================================
+--
+-- Linux / macOS:
+--   docker exec -t ride_hailing pg_dump -U postgres -d ride_hailing_db > ./backups/ride_hailing_full.sql
+--
+-- Windows (cmd):
+--   docker exec -t ride_hailing pg_dump -U postgres -d ride_hailing_db > .\backups\ride_hailing_full.sql
+--
+-- =========================================================
+-- 5. BACKUP DE ROLES
+-- =========================================================
+--
+-- Linux / macOS:
+--   docker exec -t ride_hailing pg_dumpall -U postgres --globals-only > ./backups/ride_hailing_globals.sql
+--
+-- Windows (cmd):
+--   docker exec -t ride_hailing pg_dumpall -U postgres --globals-only > .\backups\ride_hailing_globals.sql
+--
+-- =========================================================
+-- 6. BACKUP PARCIAL
+-- =========================================================
+--
+-- VIAJE:
+-- Linux / macOS:
+--   docker exec -t ride_hailing pg_dump -U postgres -d ride_hailing_db -Fc -t viaje -f /tmp/viaje.dump
+--   docker cp ride_hailing:/tmp/viaje.dump ./backups/viaje.dump
+--
+-- Windows (cmd):
+--   docker exec -t ride_hailing pg_dump -U postgres -d ride_hailing_db -Fc -t viaje -f /tmp/viaje.dump
+--   docker cp ride_hailing:/tmp/viaje.dump .\backups\viaje.dump
+--
+-- OFERTA:
+-- Linux / macOS:
+--   docker exec -t ride_hailing pg_dump -U postgres -d ride_hailing_db -Fc -t oferta -f /tmp/oferta.dump
+--   docker cp ride_hailing:/tmp/oferta.dump ./backups/oferta.dump
+--
+-- Windows (cmd):
+--   docker exec -t ride_hailing pg_dump -U postgres -d ride_hailing_db -Fc -t oferta -f /tmp/oferta.dump
+--   docker cp ride_hailing:/tmp/oferta.dump .\backups\oferta.dump
+--
+-- =========================================================
+-- 7. VERIFICAR BACKUP
+-- =========================================================
+--
+-- Linux / macOS:
+--   ls -lh ./backups
+--   pg_restore -l ./backups/ride_hailing_full.dump
+--
+-- Windows (cmd):
+--   dir .\backups
+--   pg_restore -l .\backups\ride_hailing_full.dump
+--
+-- =========================================================
+-- 8. RESTAURACIÓN COMPLETA
+-- =========================================================
+--
+-- PASO 1: Crear base
+--
+--   docker exec -it ride_hailing psql -U postgres
+--
+-- Dentro:
+--   CREATE DATABASE ride_hailing_restore;
+--   \q
+--
+-- PASO 2: Copiar dump
+--
+-- Linux / macOS:
+--   docker cp ./backups/ride_hailing_full.dump ride_hailing:/tmp/ride_hailing_full.dump
+--
+-- Windows (cmd):
+--   docker cp .\backups\ride_hailing_full.dump ride_hailing:/tmp/ride_hailing_full.dump
+--
+-- PASO 3: Restaurar
+--
+--   docker exec -t ride_hailing pg_restore -U postgres -d ride_hailing_restore /tmp/ride_hailing_full.dump
+--
+-- =========================================================
+-- 9. RESTAURACIÓN PARCIAL
+-- =========================================================
+--
+--   docker exec -t ride_hailing pg_restore -U postgres -d ride_hailing_restore -t oferta /tmp/ride_hailing_full.dump
+--
+-- =========================================================
+-- 10. RESTAURAR ROLES
+-- =========================================================
+--
+-- Linux / macOS:
+--   docker cp ./backups/ride_hailing_globals.sql ride_hailing:/tmp/ride_hailing_globals.sql
+--
+-- Windows (cmd):
+--   docker cp .\backups\ride_hailing_globals.sql ride_hailing:/tmp/ride_hailing_globals.sql
+--
+-- Ejecutar:
+--   docker exec -i ride_hailing psql -U postgres -f /tmp/ride_hailing_globals.sql
+--
+-- =========================================================
+-- 11. VERIFICACIÓN FINAL
+-- =========================================================
+--
+-- Conectarse:
+--   docker exec -it ride_hailing psql -U postgres -d ride_hailing_restore
+--
+-- TABLAS:
+SELECT table_name
+FROM information_schema.tables
+WHERE table_schema = 'public';
+
+-- ÍNDICES:
+SELECT indexname FROM pg_indexes;
+
+-- DATOS:
+SELECT COUNT(*) FROM rider;
+
+-- =========================================================
+-- 12. PRUEBA FINAL
+-- =========================================================
+--
+-- Antes del backup:
+--
+-- INSERT INTO rider (nom_rider, ap_rider, mail_rider, pass_rider)
+-- VALUES ('Backup','Test','backup@test.com','1234');
+--
+-- Después:
+--
+-- SELECT * FROM rider WHERE mail_rider='backup@test.com';
