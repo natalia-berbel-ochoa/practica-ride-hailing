@@ -48,6 +48,15 @@ Como se ha mencionado antes, la relación entre CONDUCTOR y VEHÍCULO es de uno 
 
 Por último, la relación entre VIAJE y PAGO se ha definido como uno a uno, ya que cada trayecto genera un único pago asociado.
 
+# Tablas auxiliares de trazabilidad y auditoría
+El MER adjuntado previamente se ha limitado deliberadamente a las entidades del negocio: rider, conductor, company, vehículo, viaje, oferta y pago. No se han incluido en el diagrama las tablas auxiliares de soporte, ya que no forman parte del modelo principal de la plataforma, sino de su implementación técnica y de control.
+
+Entre estas tablas se encuentran las destinadas a la trazabilidad de estados y a la auditoría de operaciones. Su finalidad es conservar la evidencia de la evolución de los registros y facilitar tareas de supervisión, depuración e inspección del sistema.
+
+Por su parte, la tabla de auditoría de operaciones tiene como función el registro de eventos relevantes, como inserciones, actualizaciones o cambios de estado. Esto permite conservar la traza de una operación auqneu el registro cambio posteriormente o sea eliminado.
+
+Por tanto, la ausencia de estas tablas no implican que no existan en la base de datos, sino que se ha optado por excluilas del diagrama principal para evitar sobrecargarlo con estructuras de soporte técnico. Su uso pertenece al nivel lógico-físico del sistema, no al núcleo del negocio.
+
 # Consultas operativas (archivo queries.sql)
 Se han realizado 4 tipos de consultas para tratar de cubrir el ciclo de vida de u viaje.
 1. Inserts con transacciones atómicas
