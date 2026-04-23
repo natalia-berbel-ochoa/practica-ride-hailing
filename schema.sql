@@ -46,13 +46,16 @@ CREATE TYPE metodo_pago_enum AS ENUM (
 
 
 -- CREACIÓN DE TABLAS
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
+
 CREATE TABLE rider (
     id_rider        BIGSERIAL PRIMARY KEY,                        -- Identificador único del rider
     nom_rider       VARCHAR(100) NOT NULL,                       -- Nombre del rider
     ap_rider        VARCHAR(100) NOT NULL,                       -- Apellidos del rider
     tel_rider       VARCHAR(30) UNIQUE,                          -- No hay dos personas con el mismo número
     mail_rider      VARCHAR(100) NOT NULL UNIQUE,                -- Igual con el correo
-    pass_rider      VARCHAR(100) NOT NULL,                       -- Contraseña del rider
+    hash_pass_rider VARCHAR(72)  NOT NULL,                      -- Contraseña del rider
     registro_rider  TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP  -- Se guarda la hora de registro
 );
 
@@ -79,7 +82,7 @@ CREATE TABLE conductor (
     ap_conductor            VARCHAR(100) NOT NULL,              -- Apellidos del conductor
     tel_conductor           VARCHAR(30) UNIQUE,                 -- No se repiten teléfonos
     mail_conductor          VARCHAR(100) NOT NULL UNIQUE,       -- No se repiten correos
-    pass_conductor          VARCHAR(100) NOT NULL,              -- Contraseña del conductor
+    hash_pass_conductor VARCHAR(72)  NOT NULL,              -- Contraseña del conductor
     registro_conductor      TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,   -- Fecha de alta del conductor
 
     -- AÑADIMOS LAS CLAVES FORÁNEAS

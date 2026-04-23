@@ -5,12 +5,12 @@ INSERT INTO vehiculo (matricula, marca, modelo, color, anio)
 VALUES ('1234XYZ', 'Toyota', 'Yaris', 'Blanco', 2022)
 RETURNING id_vehiculo;  -- Capturamos el id para usarlo en el conductor
 
-INSERT INTO conductor (id_company, id_vehiculo, nom_conductor, ap_conductor, tel_conductor, mail_conductor, pass_conductor)
+INSERT INTO conductor (id_company, id_vehiculo, nom_conductor, ap_conductor, tel_conductor, mail_conductor, hash_pass_conductor)
 VALUES (
     1,                          -- Pertenece a Uber
     currval('vehiculo_id_vehiculo_seq'),  -- Id del vehículo recién insertado
     'Carmen', 'Villanueva', '600000021',
-    'carmen.villanueva@example.com', 'pass_c11'
+    'carmen.villanueva@example.com', crypt('pass_c11', gen_salt('bf')
 );
 
 COMMIT;
@@ -206,3 +206,13 @@ JOIN conductor c  ON o.id_conductor = c.id_conductor
 JOIN company   co ON c.id_company   = co.id_company
 WHERE p.estado_pago = 'completado'
 ORDER BY v.fin_viaje DESC;
+
+-- VERIFICACIÓN DE LOGIN
+SELECT id_rider, nom_rider FROM rider
+WHERE mail_rider = 'ana.perez@example.com'
+  AND hash_pass_rider = crypt('password1', hash_pass_rider);
+SELECT id_conductor, nom_conductor FROM conductor
+WHERE mail_conductor = 'juan.gomez@example.com'
+  AND hash_pass_conductor = crypt('pass_c1', hash_pass_conductor);
+UPDATE rider SET hash_pass_rider = crypt('nueva_password', gen_salt('bf'))
+WHERE mail_rider = 'ana.perez@example.com';

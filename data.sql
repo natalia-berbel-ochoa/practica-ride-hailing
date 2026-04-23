@@ -1,26 +1,29 @@
 -- 1. RIDER
 
-INSERT INTO rider (nom_rider, ap_rider, mail_rider, tel_rider, pass_rider) VALUES
-('Ana', 'Pérez', 'ana.perez@example.com', '600000001', 'password1'),
-('Luis', 'García', 'luis.garcia@example.com', '600000002', 'password2'),
-('Marta', 'López', 'marta.lopez@example.com', '600000003', 'password3'),
-('Javier', 'Ruiz', 'javier.ruiz@example.com', '600000004', 'password4'),
-('Lucía', 'Torres', 'lucia.torres@example.com', '600000005', 'password5'),
-('Pablo', 'Martín', 'pablo.martin@example.com', '600000006', 'password6'),
-('Elena', 'Sánchez', 'elena.sanchez@example.com', '600000007', 'password7'),
-('Diego', 'Romero', 'diego.romero@example.com', '600000008', 'password8'),
-('Carlos', 'Díaz', 'carlos.diaz@example.com', '600000009', 'password009'),
-('Sofía', 'Fernández', 'sofia.fernandez@example.com', '600000010', 'password010'),
-('Sergio', 'Moreno', 'sergio.moreno@example.com', '600000011', 'password011'),
-('Raúl', 'Navarro', 'raul.navarro@example.com', '600000012', 'password012'),
-('Adrián', 'Vega', 'adrian.vega@example.com', '600000013', 'password013'),
-('María', 'Gómez', 'maria.gomez@example.com', '600000014', 'password014'),
-('Daniel', 'Castro', 'daniel.castro@example.com', '600000015', 'password015'),
-('Rubén', 'Ortiz', 'ruben.ortiz@example.com', '600000016', 'password016'),
-('Iván', 'Herrera', 'ivan.herrera@example.com', '600000017', 'password017'),
-('Álvaro', 'Molina', 'alvaro.molina@example.com', '600000018', 'password018'),
-('David', 'Gil', 'david.gil@example.com', '600000019', 'password019'),
-('Óscar', 'León', 'oscar.leon@example.com', '600000020', 'password020');
+-- Las contraseñas se almacenan como hashes bcrypt generados con pgcrypto.
+-- crypt('texto_plano', gen_salt('bf')) produce un hash distinto cada vez (salt aleatorio incluido).
+-- La contraseña original NUNCA se guarda. Para verificar: crypt(input_usuario, hash) = hash.
+INSERT INTO rider (nom_rider, ap_rider, mail_rider, tel_rider, hash_pass_rider) VALUES
+('Ana', 'Pérez', 'ana.perez@example.com', '600000001', crypt('password1', gen_salt('bf'))),
+('Luis', 'García', 'luis.garcia@example.com', '600000002', crypt('password2', gen_salt('bf'))),
+('Marta', 'López', 'marta.lopez@example.com', '600000003', crypt('password3', gen_salt('bf'))),
+('Javier', 'Ruiz', 'javier.ruiz@example.com', '600000004', crypt('password4', gen_salt('bf'))),
+('Lucía', 'Torres', 'lucia.torres@example.com', '600000005', crypt('password5', gen_salt('bf'))),
+('Pablo', 'Martín', 'pablo.martin@example.com', '600000006', crypt('password6', gen_salt('bf'))),
+('Elena', 'Sánchez', 'elena.sanchez@example.com', '600000007', crypt('password7', gen_salt('bf'))),
+('Diego', 'Romero', 'diego.romero@example.com', '600000008', crypt('password8', gen_salt('bf'))),
+('Carlos', 'Díaz', 'carlos.diaz@example.com', '600000009', crypt('password9', gen_salt('bf'))),
+('Sofía', 'Fernández', 'sofia.fernandez@example.com', '600000010', crypt('password10', gen_salt('bf'))),
+('Sergio', 'Moreno', 'sergio.moreno@example.com', '600000011', crypt('password11', gen_salt('bf'))),
+('Raúl', 'Navarro', 'raul.navarro@example.com', '600000012', crypt('password12', gen_salt('bf'))),
+('Adrián', 'Vega', 'adrian.vega@example.com', '600000013', crypt('password13', gen_salt('bf'))),
+('María', 'Gómez', 'maria.gomez@example.com', '600000014', crypt('password14', gen_salt('bf'))),
+('Daniel', 'Castro', 'daniel.castro@example.com', '600000015', crypt('password15', gen_salt('bf'))),
+('Rubén', 'Ortiz', 'ruben.ortiz@example.com', '600000016', crypt('password16', gen_salt('bf'))),
+('Iván', 'Herrera', 'ivan.herrera@example.com', '600000017', crypt('password17', gen_salt('bf'))),
+('Álvaro', 'Molina', 'alvaro.molina@example.com', '600000018', crypt('password18', gen_salt('bf'))),
+('David', 'Gil', 'david.gil@example.com', '600000019', crypt('password19', gen_salt('bf'))),
+('Óscar', 'León', 'oscar.leon@example.com', '600000020', crypt('password20', gen_salt('bf')));
 
 
 -- 2. EMPRESAS 
@@ -47,17 +50,17 @@ INSERT INTO vehiculo (matricula, marca, modelo, color, anio) VALUES
 
 -- 4. CONDUCTORES los usuarios 9 al 18 son conductores
 
-INSERT INTO conductor (id_company, id_vehiculo, nom_conductor, ap_conductor, tel_conductor, mail_conductor, pass_conductor) VALUES
-(1, 1, 'Juan', 'Gómez', '600000001', 'juan.gomez@example.com', 'pass_c1'),
-(1, 2, 'María', 'López', '600000002', 'maria.lopez@example.com', 'pass_c2'),
-(1, 3, 'Pedro', 'Martínez', '600000003', 'pedro.martinez@example.com', 'pass_c3'),
-(2, 4, 'Luisa', 'Pérez', '600000004', 'luisa.perez@example.com', 'pass_c4'),
-(2, 5, 'Miguel', 'García', '600000005', 'miguel.garcia@example.com', 'pass_c5'),
-(2, 6, 'Laura', 'Fernández', '600000006', 'laura.fernandez@example.com', 'pass_c6'),
-(3, 7, 'Marta', 'Iglesias', '600000007', 'marta.iglesias@example.com', 'pass_c7'),
-(3, 8, 'Diego', 'Gómez', '600000008', 'diego.gomez@example.com', 'pass_c8'),
-(3, 9, 'Álvaro', 'Díaz', '600000009', 'alvaro.diaz@example.com', 'pass_c9'),
-(1, 10, 'Sergio', 'Muñoz', '600000010', 'sergio.munoz@example.com', 'pass_c10');
+INSERT INTO conductor (id_company, id_vehiculo, nom_conductor, ap_conductor, tel_conductor, mail_conductor, hash_pass_conductor) VALUES
+(1, 1, 'Juan', 'Gómez', '600000001', 'juan.gomez@example.com', crypt('pass_c1', gen_salt('bf'))),
+(1, 2, 'María', 'López', '600000002', 'maria.lopez@example.com', crypt('pass_c2', gen_salt('bf'))),
+(1, 3, 'Pedro', 'Martínez', '600000003', 'pedro.martinez@example.com', crypt('pass_c3', gen_salt('bf'))),
+(2, 4, 'Luisa', 'Pérez', '600000004', 'luisa.perez@example.com', crypt('pass_c4', gen_salt('bf'))),
+(2, 5, 'Miguel', 'García', '600000005', 'miguel.garcia@example.com', crypt('pass_c5', gen_salt('bf'))),
+(2, 6, 'Laura', 'Fernández', '600000006', 'laura.fernandez@example.com', crypt('pass_c6', gen_salt('bf'))),
+(3, 7, 'Marta', 'Iglesias', '600000007', 'marta.iglesias@example.com', crypt('pass_c7', gen_salt('bf'))),
+(3, 8, 'Diego', 'Gómez', '600000008', 'diego.gomez@example.com', crypt('pass_c8', gen_salt('bf'))),
+(3, 9, 'Álvaro', 'Díaz', '600000009', 'alvaro.diaz@example.com', crypt('pass_c9', gen_salt('bf'))),
+(1, 10, 'Sergio', 'Muñoz', '600000010', 'sergio.munoz@example.com', crypt('pass_c10', gen_salt('bf')));
 
 
 -- 5. VIAJES
