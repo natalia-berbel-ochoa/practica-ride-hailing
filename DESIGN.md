@@ -7,7 +7,7 @@ Nuestro modelo se articula en torno a siete entidades principales, cada una con 
 En primer lugar, se han definido las relaciones del modelo entidad-relación a partir de una serie de supuestos, necesarios para comprender las decisiones adoptadas en el diseño:
 
 1. Relación CONDUCTOR-VEHÍCULO  
-    Dado que el enunciado no especifica si un conductor puede utilizar varios vehículos, se ha optado por asumir que cada conductor conduce siempre un único vehículo. Por ello, esta relación es una relación 1:1.
+    Dado que el enunciado no especifica si un conductor puede utilizar varios vehículos, se ha optado por asumir que cada conductor conduce siempre un único vehículo. Por ello, a lo largo del trabajo, se trata como una relación 1:1.
 
 2. Relación VIAJE-PAGO  
     Se ha asumido que cada viaje genera un único pago, realizado una vez finalizado el trayecto. En consecuencia, la relación entre VIAJE y PAGO se ha planteado como 1:1.
@@ -26,10 +26,10 @@ A continuación, se presenta el MER resultante, realizado mediante la herramient
 # Entidades principales
 En este apartado se describen las entidades sobre las que hemos basado nuestra base de datos. 
 - **RIDER**: Usuario que utiliza la aplicación para solicitar un viaje.Cuenta con un ID como clave primaria, además de los datos necesarios para el registro. Cada rider puede realizar múltiples solicitudes a lo largo del tiempo.
-- **VIAJE**: Entidad que representa el núcleo del modelo. Almacena la infromación de cada trayecto solicitado, como el precio y el conductor asignado. Además, supone también un putno de conexión con otras entidades.
+- **VIAJE**: Entidad que representa el núcleo del modelo. Almacena la información de cada trayecto solicitado, como el precio y el conductor asignado. Además, supone también un punto de conexión con otras entidades.
 - **OFERTA**: Representa la lógica del problema. Cuando un rider solicita un viaje, se genera la oferta, que recoge el viaje, el conductor y el estado de la respuesta. Permite registrar qué conductores han recibido una solicitud y cuáles la han aceptado.
-- **CONDUCTOR**: Representa a los usuarios que reciben ofertas y realizan los viajes. Cada uno pertenece a una única empresa, y de acuerdo con los supeustos mencionados previamente, está vinculado con un único vehículo. Sobre esta entidad se calculan métricas como la tasa de aceptación o los ingresos generados.
-- **COMPANY**: Agrupa a los conductores según la empresa a la que pertenecen. Representa una naecesidad fucnional, pues el enunciado pide el cálculo de métricas asociadas a la empresa, como los ingresos o la tasa de aceptación.
+- **CONDUCTOR**: Representa a los usuarios que reciben ofertas y realizan los viajes. Cada uno pertenece a una única empresa, y de acuerdo con los supuestos mencionados previamente, está vinculado con un único vehículo. Sobre esta entidad se calculan métricas como la tasa de aceptación o los ingresos generados.
+- **COMPANY**: Agrupa a los conductores según la empresa a la que pertenecen. Representa una necesidad fucnional, pues el enunciado pide el cálculo de métricas asociadas a la empresa, como los ingresos o la tasa de aceptación.
 - **PAGO**: Recoge la información económica asociada a cada solicitud de viaje. Es una entidad independiente para facilitar la gestión del cobro. Por esta separación, es más fácil calcular ingresos por conductor y por empresa, además de los euros por kilómetro o los euros por minuto.
 - **VEHÍCULO**: Almacena la innformación del transporte empleado por el conductor. Su función principal es descriptiva, pero permite también acercar el modelo al funcionamiento real de este tipo de aplicaciones.
 
@@ -53,9 +53,9 @@ El MER adjuntado previamente se ha limitado deliberadamente a las entidades del 
 
 Entre estas tablas se encuentran las destinadas a la trazabilidad de estados y a la auditoría de operaciones. Su finalidad es conservar la evidencia de la evolución de los registros y facilitar tareas de supervisión, depuración e inspección del sistema.
 
-Por su parte, la tabla de auditoría de operaciones tiene como función el registro de eventos relevantes, como inserciones, actualizaciones o cambios de estado. Esto permite conservar la traza de una operación auqneu el registro cambio posteriormente o sea eliminado.
+Por su parte, la tabla de auditoría de operaciones tiene como función el registro de eventos relevantes, como inserciones, actualizaciones o cambios de estado. Esto permite conservar la traza de una operación aunque el registro cambio posteriormente o sea eliminado.
 
-Por tanto, la ausencia de estas tablas no implican que no existan en la base de datos, sino que se ha optado por excluilas del diagrama principal para evitar sobrecargarlo con estructuras de soporte técnico. Su uso pertenece al nivel lógico-físico del sistema, no al núcleo del negocio.
+Por tanto, la ausencia de estas tablas no implican que no existan en la base de datos, sino que se ha optado por excluirlas del diagrama principal para evitar sobrecargarlo con estructuras de soporte técnico. Su uso pertenece al nivel lógico-físico del sistema, no al núcleo del negocio.
 
 # Consultas operativas (archivo queries.sql)
 Se han realizado 4 tipos de consultas para tratar de cubrir el ciclo de vida de u viaje.
@@ -74,3 +74,5 @@ Se han realizado 4 tipos de consultas para tratar de cubrir el ciclo de vida de 
         - Viajes activos
         - Ofertas por viaje
         - Pagos completados (con información sobre el conductor)
+
+# Índices

@@ -66,7 +66,7 @@ CREATE TABLE company (
 );
 
 CREATE TABLE vehiculo (
-    id_vehiculo             BIGSERIAL PRIMARY KEY,              -- Identificador único del vehículo
+    id_vehiculo             BIGSERIAL PRIMARY KEY,              -- Identificador único del vehículo 
     matricula               VARCHAR(20) NOT NULL UNIQUE,        -- Cada vehículo tiene matrícula única
     marca                   VARCHAR(60) NOT NULL,               -- Marca del vehículo
     modelo                  VARCHAR(60) NOT NULL,               -- Modelo del vehículo
@@ -77,7 +77,7 @@ CREATE TABLE vehiculo (
 CREATE TABLE conductor (
     id_conductor            BIGSERIAL PRIMARY KEY,              -- Identificador único del conductor
     id_company              BIGINT NOT NULL,                    -- Empresa a la que pertenece el conductor
-    id_vehiculo             BIGINT,                             -- Vehículo asignado al conductor
+    id_vehiculo             BIGINT UNIQUE,                      -- Vehículo asignado al conductor
     nom_conductor           VARCHAR(100) NOT NULL,              -- Nombre del conductor
     ap_conductor            VARCHAR(100) NOT NULL,              -- Apellidos del conductor
     tel_conductor           VARCHAR(30) UNIQUE,                 -- No se repiten teléfonos
