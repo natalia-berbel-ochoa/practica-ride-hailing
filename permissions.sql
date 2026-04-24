@@ -45,6 +45,10 @@ GRANT SELECT ON viaje, oferta, pago, company, vehiculo TO analista; -- Puede con
 -- Para el DBA (administrador de base de datos):
 GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO dba_role; -- Necesita acceso total para mantenimiento, backups y gestión del esquema
 
+-- Permisos de secuencias
+-- Necesario para que los INSERT funcionen con columnas BIGSERIAL
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_rider, app_conductor, app_backend;
+
 
 -- USUARIOS
 -- Cada usuario tiene una contraseña y se le asigna a uno o más roles según su función en la organización.

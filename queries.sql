@@ -10,7 +10,7 @@ VALUES (
     1,                          -- Pertenece a Uber
     currval('vehiculo_id_vehiculo_seq'),  -- Id del vehículo recién insertado
     'Carmen', 'Villanueva', '600000021',
-    'carmen.villanueva@example.com', crypt('pass_c11', gen_salt('bf')
+    'carmen.villanueva@example.com', crypt('pass_c11', gen_salt('bf'))
 );
 
 COMMIT;
@@ -216,3 +216,35 @@ WHERE mail_conductor = 'juan.gomez@example.com'
   AND hash_pass_conductor = crypt('pass_c1', hash_pass_conductor);
 UPDATE rider SET hash_pass_rider = crypt('nueva_password', gen_salt('bf'))
 WHERE mail_rider = 'ana.perez@example.com';
+
+-- Verificación usuarios y permisos
+
+-- Usuarios creados y son superusuarios (deben ser false)
+SELECT usename, usesuper 
+FROM pg_user
+WHERE usename LIKE 'usr_%';
+
+-- Roles asignados a cada usuario
+SELECT r.rolname AS usuario, m.rolname AS rol_asignado
+FROM pg_roles r
+JOIN pg_auth_members am ON r.oid = am.member
+JOIN pg_roles m ON am.roleid = m.oid
+WHERE r.rolname LIKE 'usr_%'
+ORDER BY r.rolname;
+
+-- Permisos de cada rol sobre las tablas
+SELECT grantee, table_name, privilege_type
+FROM information_schema.role_table_grants
+WHERE grantee IN ('app_rider', 'app_conductor', 'app_backend', 'analista', 'dba_role')
+ORDER BY grantee, table_name;
+
+-- Verificar que el analista NO tiene acceso a datos personales (ejemplo con la tabla conductor)
+SET ROLE usr_analista;
+SELECT * FROM rider; -- Debería dar error por falta de permisos
+SELECT * FROM conductor; -- Debería dar error por falta de permisos
+RESET ROLE;
+
+-- Verificar que el analista tiene acceso a la vista sin datos personales
+SET ROLE usr_analista;
+SELECT * FROM vista_analista_conductores; -- Debería mostrar datos de conductores sin datos personales
+RESET ROLE;
