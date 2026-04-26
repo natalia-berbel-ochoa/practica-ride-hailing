@@ -33,6 +33,18 @@ El repositorio contiene los siguientes archivos principales:
     docker exec -i ride_hailing psql -U postgres -d ride_hailing_db < queries.sql
     docker exec -i ride_hailing psql -U postgres -d ride_hailing_db < dashboard.sql
 
+*Verificación de permisos:*
+- **Comprobar usuarios creados:**
+    docker exec -it ride_hailing psql -U postgres -d ride_hailing_db -c "SELECT usename, usesuper FROM pg_user WHERE usename LIKE 'usr_%';"
+- **Comprobar que usr_analista no puede ver datos personales:**
+    docker exec -it ride_hailing psql -U usr_analista -d ride_hailing_db -c "SELECT * FROM rider;"
+- **Comprobar que usr_analista si puede ver la vista:**
+    docker exec -it ride_hailing psql -U usr_analista -d ride_hailing_db -c "SELECT * FROM vista_analista_conductores;"
+- **Comprobar que usr_rider no puede ver conductores:**
+    docker exec -it ride_hailing psql -U usr_rider -d ride_hailing_db -c "SELECT * FROM conductor;"
+- **Comprobar que usr_conductor no puede ver riders:**
+    docker exec -it ride_hailing psql -U usr_conductor -d ride_hailing_db -c "SELECT * FROM rider;"
+
 *Dashboard visual:*
 Se incorpora además un dashboard visual mediante la herramienta Adminer. Esta permite visualizar y ejecutar consultas sobre la base de datos sin necesidad de instalar software adicional. De este modo, se cumple el requisito de disponer de un dashboard de métricas, facilitando la inspección tanto de métricas de negocio como de bases de datos.
 
@@ -93,4 +105,4 @@ Se han creado índices sobre claves foráneas para la optimización de consultas
 - Conductores por company.
 
 ## Backup y recuperación
-Se ha definido un plan de backup que permite restaurar copias completas en la base de datos, ademñas de la restauración del sistema en caso de fallo. Esto garantiza la disponibilidad del sistema.
+Se ha definido un plan de backup que permite restaurar copias completas en la base de datos con RPO (24h) y RTO (30 min), además de la restauración del sistema en caso de fallo. Esto garantiza la disponibilidad del sistema.

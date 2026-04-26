@@ -21,7 +21,7 @@ CREATE ROLE app_rider; -- app móvil del rider
 CREATE ROLE app_conductor; -- app móvil del conductor
 CREATE ROLE app_backend; -- servidor de negocio (backend)
 CREATE ROLE analista; -- analista de datos (solo lectura, sin acceso a datos personales)
-CREATE ROLE dba_role; -- administrador de base de datos (DBA) con todos los permisos, pero sin acceso a datos personales (se le denegará explícitamente el acceso a las tablas que contienen datos personales)
+CREATE ROLE dba_role; -- administrador de base de datos (DBA) con acceso total, necesario para mantenimiento, backups y gestión del esquema
 
 -- PERMISOS POR ROL 
 -- Asignamos a cada rol solo los permisos necesarios
@@ -29,12 +29,12 @@ CREATE ROLE dba_role; -- administrador de base de datos (DBA) con todos los perm
 -- Para el rider (usuario de la app móvil del rider):
 GRANT SELECT, INSERT ON viaje TO app_rider; -- Puede solicitar viajes
 GRANT SELECT ON oferta TO app_rider; -- Puede ver sus viajes y ofertas
-GRANT SELECT, UPDATE ON rider TO app_rider; -- Puede actualizar su perfil, pero no puede ver ni modificar datos de otros riders
+GRANT SELECT, UPDATE ON rider TO app_rider; -- Puede ver y actualizar su perfil. El filtrado por rider concreto se aplica en la capa de aplicación
 
 -- Para el conductor (usuario de la app móvil del conductor):
 GRANT SELECT, UPDATE ON oferta TO app_conductor; -- Puede ver y responder ofertas
 GRANT SELECT, UPDATE ON viaje TO app_conductor; -- Puede ver viajes disponibles y los suyos
-GRANT SELECT, UPDATE ON conductor TO app_conductor; -- Puede actualizar su perfil, pero no puede ver ni modificar datos de otros conductores
+GRANT SELECT, UPDATE ON conductor TO app_conductor; -- Puede ver y actualizar su perfil. El filtrado por conductor concreto se aplica en la capa de aplicación
 
 -- Para el backend (servidor de negocio):
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_backend; -- Puede realizar todas las operaciones en todas las tablas del esquema público
