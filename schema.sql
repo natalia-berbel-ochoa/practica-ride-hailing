@@ -185,8 +185,7 @@ CREATE TABLE oferta (
 
 CREATE TABLE pago (
     id_pago              BIGSERIAL PRIMARY KEY,                  -- Identificador único del pago
-    id_viaje             BIGINT NOT NULL UNIQUE,                 -- Cada viaje solo puede tener un pago
-    id_oferta            BIGINT NOT NULL UNIQUE,                 -- Cada pago se asocia a una sola oferta
+    id_viaje             BIGINT NOT NULL UNIQUE,                 -- Cada viaje solo puede tener un pago           
     importe_pago         NUMERIC(10,2) NOT NULL CHECK (importe_pago >= 0), -- Importe total cobrado
     comision_company     NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (comision_company >= 0), -- Comisión que recibe la empresa
     estado_pago          estado_pago_enum NOT NULL DEFAULT 'pendiente', -- Estado inicial del pago
@@ -196,11 +195,6 @@ CREATE TABLE pago (
         FOREIGN KEY (id_viaje)
         REFERENCES viaje(id_viaje)
         ON DELETE CASCADE,                   -- Si se elimina el viaje, también se elimina el pago
-
-    CONSTRAINT fk_pago_oferta
-        FOREIGN KEY (id_oferta)
-        REFERENCES oferta(id_oferta)
-        ON DELETE RESTRICT                   -- No permitimos borrar la oferta si ya tiene pago asociado
 );
 
 CREATE TABLE historial_estado_viaje (
