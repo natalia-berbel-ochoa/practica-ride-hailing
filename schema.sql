@@ -77,7 +77,7 @@ CREATE TABLE vehiculo (
 CREATE TABLE conductor (
     id_conductor            BIGSERIAL PRIMARY KEY,              -- Identificador único del conductor
     id_company              BIGINT NOT NULL,                    -- Empresa a la que pertenece el conductor
-    id_vehiculo             BIGINT UNIQUE,                      -- Vehículo asignado al conductor
+    id_vehiculo             BIGINT NOT NULL UNIQUE,                      -- Vehículo asignado al conductor
     nom_conductor           VARCHAR(100) NOT NULL,              -- Nombre del conductor
     ap_conductor            VARCHAR(100) NOT NULL,              -- Apellidos del conductor
     tel_conductor           VARCHAR(30) UNIQUE,                 -- No se repiten teléfonos
@@ -128,8 +128,33 @@ CREATE TABLE viaje (
         CHECK ( -- Comprobamos que origen y destino no sean iguales
             origen_lat <> destino_lat
             OR origen_lon <> destino_lon
-            OR origen_direccion <> destino_direccion
-        )                                  -- Debe cambiar al menos una coordenada o la dirección
+            OR origen_direccion <> destino_direccion 
+        ),-- Debe cambiar al menos una coordenada o la dirección
+        
+    CONSTRAINT chk_fechas_viaje
+        CHECK (
+            inicio_viaje IS NULL
+            OR fin_viaje IS NULL
+            OR fin_viaje >= inicio_viaje
+        ),  
+
+    CONSTRAINT chk_viaje_finalizado_completo
+        CHECK (
+            estado_viaje <> 'finalizado'
+            OR (
+                id_conductor IS NOT NULL
+                AND inicio_viaje IS NOT NULL
+                AND fin_viaje IS NOT NULL
+                AND distancia_km IS NOT NULL
+                AND duracion_min IS NOT NULL
+            )
+        ),
+        
+    CONSTRAINT chk_viaje_aceptado_con_conductor
+    CHECK (
+        estado_viaje NOT IN ('aceptado', 'en curso', 'finalizado')
+        OR id_conductor IS NOT NULL
+    )                               
 );
 
 CREATE TABLE oferta (
